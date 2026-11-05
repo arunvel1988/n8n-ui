@@ -1,3 +1,125 @@
+#########################################################################
 cd ai-devops-docker-lab
 docker-compose up -d --build
 docker exec -it ollama ollama pull qwen3:8b
+
+docker exec ollama ollama list
+
+
+docker logs docker-mcp
+
+curl -i http://localhost:8080/mcp
+
+curl http://localhost:11434/api/generate \
+  -d '{
+    "model": "qwen3:8b",
+    "prompt": "Explain Docker CrashLoop behaviour in two sentences.",
+    "stream": false
+  }'
+
+###################################################################################
+
+
+http://YOUR-VM-IP:5678
+Webhook
+- Method: POST
+- Path: docker-incident
+- Click Listen for test event.
+
+
+
+AI Agent
+- Add an AI Agent node.
+
+
+
+Ollama Chat Model
+- Connect to the AI Agent's Chat Model input.
+- Base URL: http://ollama:11434
+- Model: qwen3:8b
+
+
+
+MCP Client Tool
+- Connect to the AI Agent's Tools input.
+- Transport: Streamable HTTP
+- URL: http://docker-mcp:8080/mcp
+The agent should discover:
+- list_containers
+- inspect_container
+- get_container_logs
+
+
+
+Connect AI Agent output to a Slack node later. First test without Slack.
+
+###############################################################
+
+
+You are an AI DevOps incident investigator.
+
+When you receive a Docker alert:
+
+1. Identify the affected container.
+2. Use list_containers to inspect all containers.
+3. Use inspect_container to inspect the affected container.
+4. Use get_container_logs to retrieve its logs.
+5. Analyze restart count, exit code and log messages.
+6. Identify the most likely root cause.
+
+Return:
+- Container name
+- Container status
+- Restart count
+- Exit code
+- Important log messages
+- Root cause
+- Recommended remediation
+- Confidence level
+
+Never invent evidence.
+Never restart, stop, delete or modify containers.
+Only perform read-only investigation.
+
+#############################################################
+
+
+Investigate this Docker incident:
+
+{{ JSON.stringify($json.body ?? $json) }}
+
+Use the Docker MCP tools to inspect the affected container.
+Return an evidence-based investigation report.
+
+##############################################################
+
+
+curl http://localhost:5000/crash
+
+###########################################################
+
+
+docker ps -a
+
+docker inspect demo-app \
+  --format='Status={{.State.Status}} RestartCount={{.RestartCount}} ExitCode={{.State.ExitCode}}'
+
+######################################################
+
+
+docker logs --tail 30 demo-app
+
+curl -X POST http://localhost:5678/webhook-test/docker-incident \
+-H "Content-Type: application/json" \
+-d '{
+  "body": {
+    "alertname": "DockerContainerRestarting",
+    "container": "demo-app",
+    "severity": "critical"
+  }
+}'
+
+###################################################################
+
+
+
